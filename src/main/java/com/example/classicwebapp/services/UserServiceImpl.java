@@ -76,7 +76,7 @@ public class UserServiceImpl implements UserService{
     User user = optionalUser.get();
     if (!(bCryptPasswordEncoder.matches(password, user.getPassword())) || !username
         .equals(user.getUsername())) {
-      throw new IncorrectPasswordException("Password is incorrect.");
+      throw new IncorrectPasswordException("Password or username is incorrect.");
     }
     authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));
 
