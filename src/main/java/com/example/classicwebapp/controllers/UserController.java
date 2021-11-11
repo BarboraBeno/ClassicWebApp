@@ -6,51 +6,39 @@ import com.example.classicwebapp.exceptions.UserExceptions.PasswordRequiredExcep
 import com.example.classicwebapp.exceptions.UserExceptions.UsernameAndPasswordRequiredException;
 import com.example.classicwebapp.exceptions.UserExceptions.UsernameIsTakenException;
 import com.example.classicwebapp.exceptions.UserExceptions.UsernameRequiredException;
-import com.example.classicwebapp.models.DTO.UserRegisterRequestDTO;
-import com.example.classicwebapp.models.DTO.UserRegisterResponseDTO;
 import com.example.classicwebapp.models.User;
-import com.example.classicwebapp.models.authentication.authenticationRequest;
-import com.example.classicwebapp.models.authentication.authenticationResponse;
 import com.example.classicwebapp.services.UserService;
-import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.web.servlet.view.RedirectView;
 
-@RestController
+@Controller
 public class UserController {
 
   private final UserService userService;
-  private final Logger logger;
 
-  @Autowired
-  public UserController(UserService userService, Logger logger) {
+  public UserController(UserService userService) {
     this.userService = userService;
-    this.logger = logger;
   }
 
-  @PostMapping("/register")
-  public ResponseEntity registerUser(@RequestBody UserRegisterRequestDTO request)
-      throws UsernameRequiredException, PasswordRequiredException, UsernameAndPasswordRequiredException,
-      UsernameIsTakenException {
-    User user = userService.register(request.getUsername(),request.getPassword());
-    logger.info("User succesfully registered.");
-    return ResponseEntity.status(HttpStatus.CREATED).body(new UserRegisterResponseDTO(user.getUsername(),user.getUserId(),"Registered succesfully."));
+
+ @PostMapping("/register")
+  public String registerUser(User user, RedirectAttributes redir)
+     throws UsernameRequiredException, PasswordRequiredException, UsernameAndPasswordRequiredException, UsernameIsTakenException {
+    userService.register(user.getUsername(), user.getPassword());
+
+   redir.addFlashAttribute("message",	"You successfully registered! You can now login");
+   return "redirect:login";
   }
 
   @PostMapping("/login")
-  public ResponseEntity login(@RequestBody authenticationRequest request)
-      throws IncorrectPasswordException, IncorrectUsernameException, UsernameRequiredException,
-      PasswordRequiredException, UsernameAndPasswordRequiredException {
-    String username = request.getUsername();
-    String password = request.getPassword();
+  public String loginUser(User user)
+      throws IncorrectPasswordException, IncorrectUsernameException, UsernameRequiredException, PasswordRequiredException, UsernameAndPasswordRequiredException {
+    userService.login(user.getUsername(), user.getPassword());
 
-    String jwt = userService.login(username,password);
-    logger.info("User is logged in and authorized.");
-    return ResponseEntity.status(HttpStatus.OK).body(new authenticationResponse(jwt,"ok"));
+    return "redirect:index";
   }
 
 }
